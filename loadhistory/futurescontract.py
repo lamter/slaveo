@@ -204,3 +204,28 @@ class LoadFuturesContract:
         for i in cf.symbol.values:
             contracts.append([i, 'CTP'])
         return json.dumps(contracts)[1:-1]
+
+    @staticmethod
+    def to_vnpy_cta_setting(cf, setting):
+        """
+        用于 VNPY 的 CTA_setting.json 文件的配置
+        :param df:
+        :return:
+        """
+        cf = cf.reset_index(drop=True)
+
+        lack = []
+        for i in ['name_suffix', 'className']:
+            if i not in setting:
+                lack.append(i)
+        if lack:
+            raise ValueError(u"%s not in setting" % ','.join(lack))
+
+        df = pd.DataFrame({'vtSymbol': cf.symbol, "future": cf.future})
+
+        # name
+        name_suffix = setting.pop('name_suffix')
+        df["name"] = cf.symbol.apply(lambda x: x + name_suffix)
+        for k, v in setting.items():
+            df[k] = v
+        return df.to_dict()
