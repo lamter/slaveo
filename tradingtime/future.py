@@ -4,6 +4,7 @@ import datetime
 call_auction = 0  # 集合竞价
 match = 1  # 撮合
 continuous_auction = 2  # 连续竞价
+closed = 3
 
 t = datetime.time
 
@@ -133,3 +134,18 @@ futures_tradeing_time = {
     "wr": SHFE_d,  # 线材1709
     "fu": SHFE_d,  # 燃料油1709
 }
+
+
+def get_trading_status(future, now=None):
+    now = now or datetime.datetime.now().time()
+    # 时间列表
+    trading_time = futures_tradeing_time[future]
+    for b, e, s in trading_time.values():
+        # 返回对应的状态
+        if b <= now < e:
+            return s
+    else:
+        # 不在列表中则为休市状态
+        return closed
+
+
