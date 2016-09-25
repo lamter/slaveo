@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import logging
 import pandas as pd
 import numpy as np
 import datetime
@@ -70,6 +71,7 @@ class LoadFuturesContract:
 
         # 标的物
         cf['future'] = cf.symbol.apply(self.filter_future)
+        cf['FUTURE'] = cf.future.str.upper()
 
         # 交割月
         cf['mon'] = cf.symbol.apply(self.filter_mon)
@@ -132,15 +134,15 @@ class LoadFuturesContract:
         )
 
         # 标的物
-        files['future'] = files.contract.apply(self.filter_future)
-        files['future'] = files.future.apply(lambda x: x[:-4])
+        files['FUTURE'] = files.contract.apply(self.filter_future)
+        files['FUTURE'] = files.FUTURE.apply(lambda x: x[:-4].upper())
 
         # 交割月
         files['mon'] = files.contract.apply(self.filter_mon)
 
         old_symbols = set(cf['symbol'])
 
-        cf = pd.merge(cf, files, left_on=['future', 'mon'], right_on=['future', 'mon'])
+        cf = pd.merge(cf, files, left_on=['FUTURE', 'mon'], right_on=['FUTURE', 'mon'])
         new_symbols = set(cf['symbol'])
 
         # 检查合约是否丢失
@@ -171,9 +173,9 @@ class LoadFuturesContract:
         return cf
 
     @staticmethod
-    def filter_future(symbol, up=True):
+    def filter_future(symbol):
         nums = str(list(range(0, 10)))
-        return ''.join([i.upper() for i in symbol if i not in nums])
+        return ''.join([i for i in symbol if i not in nums])
 
     @staticmethod
     def filter_mon(symbol):
@@ -200,13 +202,16 @@ class LoadFuturesContract:
                 cf = exchange_group.get_group(g)
             else:
                 cf = cf.append(exchange_group.get_group(g))
+        n = cf.shape[0]
+        logging.info("taotal %s contracts" % n)
+
         contracts = []
         for i in cf.symbol.values:
             contracts.append([i, 'CTP'])
         return json.dumps(contracts)[1:-1]
 
-    @staticmethod
-    def to_vnpy_cta_setting(cf, setting):
+    @classmethod
+    def to_vnpy_cta_setting(cls, cf, setting):
         """
         用于 VNPY 的 CTA_setting.json 文件的配置
         :param df:
@@ -228,4 +233,16 @@ class LoadFuturesContract:
         df["name"] = cf.symbol.apply(lambda x: x + name_suffix)
         for k, v in setting.items():
             df[k] = v
-        return df.to_dict()
+
+        contracts = [cls.get_turtle_pos_setting()]
+        contracts.extend(df.to_dict('record'))
+
+        return json.dumps(contracts, indent=1)
+
+    @staticmethod
+    def get_turtle_pos_setting():
+        return {
+            "name": "AturtlePosManager",
+            "vtSymbol": "",
+            "className": "TurtlePosition"
+        }
