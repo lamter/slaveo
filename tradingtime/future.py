@@ -141,7 +141,7 @@ def get_trading_status(future, now=None):
     now = now or datetime.datetime.now().time()
     # 时间列表
     trading_time = futures_tradeing_time[future]
-    for b, e, s in trading_time.values():
+    for b, e, s in trading_time:
         # 返回对应的状态
         if b <= now < e:
             return s
