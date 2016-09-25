@@ -1,1 +1,4 @@
 pandas
+tushare
+numpy
+TA-Lib
