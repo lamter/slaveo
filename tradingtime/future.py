@@ -79,15 +79,14 @@ futures_tradeing_time = {
     "T": CFFEX_ndd,  # 10年国债
 
     # 郑商所
-    "CF": list(chain(CZCE_d, CZCE_n)),  # 棉花709
-    "ZC": list(chain(CZCE_d, CZCE_n)),  # 动力煤ZC709
-    "SR": list(chain(CZCE_d, CZCE_n)),  # SR1803
-    "RM": list(chain(CZCE_d, CZCE_n)),  # 菜籽粕709
-    "MA": list(chain(CZCE_d, CZCE_n)),  # 甲醇MA709
-    "PTA": list(chain(CZCE_d, CZCE_n)),  # PTA
-    "FG": list(chain(CZCE_d, CZCE_n)),  # 玻璃709
-    "OI": list(chain(CZCE_d, CZCE_n)),  # 菜籽油709
-    "TA": CZCE_d,  # 化纤709
+    "CF": list(chain(CZCE_d, CZCE_n)),  # 棉花
+    "ZC": list(chain(CZCE_d, CZCE_n)),  # 动力煤
+    "SR": list(chain(CZCE_d, CZCE_n)),  # 白砂糖
+    "RM": list(chain(CZCE_d, CZCE_n)),  # 菜籽粕
+    "MA": list(chain(CZCE_d, CZCE_n)),  # 甲醇
+    "TA": list(chain(CZCE_d, CZCE_n)),  # PTA化纤
+    "FG": list(chain(CZCE_d, CZCE_n)),  # 玻璃
+    "OI": list(chain(CZCE_d, CZCE_n)),  # 菜籽油
     "WH": CZCE_d,  # 强筋麦709
     "SM": CZCE_d,  # 锰硅709
     "SF": CZCE_d,  # 硅铁709
@@ -98,14 +97,14 @@ futures_tradeing_time = {
     "JR": CZCE_d,  # 粳稻709
 
     # 大商所
-    "j": list(chain(DCE_d, DCE_n)),  # 焦炭1709
-    "i": list(chain(DCE_d, DCE_n)),  # 铁矿石1709
-    "jm": list(chain(DCE_d, DCE_n)),  # 焦煤1709
-    "a": list(chain(DCE_d, DCE_n)),  # 黄大豆1号1803
-    "y": list(chain(DCE_d, DCE_n)),  # 豆油1709
-    "m": list(chain(DCE_d, DCE_n)),  # 豆粕1709
-    "b": list(chain(DCE_d, DCE_n)),  # 黄大豆2号1709
-    "p": list(chain(DCE_d, DCE_n)),  # 棕榈油1709
+    "j": list(chain(DCE_d, DCE_n)),  # 焦炭
+    "i": list(chain(DCE_d, DCE_n)),  # 铁矿石
+    "jm": list(chain(DCE_d, DCE_n)),  # 焦煤
+    "a": list(chain(DCE_d, DCE_n)),  # 黄大豆1号
+    "y": list(chain(DCE_d, DCE_n)),  # 豆油
+    "m": list(chain(DCE_d, DCE_n)),  # 豆粕
+    "b": list(chain(DCE_d, DCE_n)),  # 黄大豆2号
+    "p": list(chain(DCE_d, DCE_n)),  # 棕榈油
     ###################
     "jd": DCE_d,  # 鲜鸡蛋1709
     "l": DCE_d,  # 聚乙烯1709
