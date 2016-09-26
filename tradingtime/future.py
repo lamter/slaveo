@@ -2,10 +2,10 @@
 from itertools import chain
 import datetime
 
-call_auction = 0  # 集合竞价
-match = 1  # 撮合
-continuous_auction = 2  # 连续竞价
-closed = 3
+closed = 0
+call_auction = 1  # 集合竞价
+match = 2  # 撮合
+continuous_auction = 3  # 连续竞价
 
 t = datetime.time
 
@@ -149,3 +149,5 @@ def get_trading_status(future, now=None):
         return closed
 
 
+if __name__ == "__main__":
+    get_trading_status('MA',)
