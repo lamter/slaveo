@@ -31,7 +31,7 @@ CZCE_d = (
     [t(8, 59), t(9, 0), call_auction],  # 撮合
     [t(9, 0), t(10, 15), continuous_auction],  # 连续竞价
     [t(10, 30), t(11, 30), continuous_auction],  # 连续竞价
-    [t(13, 30), t(13, 0), continuous_auction],  # 连续竞价
+    [t(13, 30), t(15, 0), continuous_auction],  # 连续竞价
 )
 
 # 郑商所夜盘
@@ -142,9 +142,13 @@ def get_trading_status(future, now=None, delta=0):
     trading_time = futures_tradeing_time[future]
     for b, e, s in trading_time:
         # 计算延迟
-        b += datetime.timedelta(seconds=delta)
-        e -= datetime.timedelta(seconds=delta)
+        if delta != 0:
+            b = datetime.datetime.combine(datetime.date.today(), b) + datetime.timedelta(seconds=delta)
+            b = b.time()
+            e = datetime.datetime.combine(datetime.date.today(), e) - datetime.timedelta(seconds=delta)
+            e = e.time()
         # 返回对应的状态
+        print(b, now, e)
         if b <= now < e:
             return s
     else:
@@ -153,4 +157,4 @@ def get_trading_status(future, now=None, delta=0):
 
 
 if __name__ == "__main__":
-    get_trading_status('MA',)
+    print(get_trading_status('rb', delta=10))
