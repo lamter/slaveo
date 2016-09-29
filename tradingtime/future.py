@@ -147,8 +147,8 @@ def get_trading_status(future, now=None, delta=0):
             b = b.time()
             e = datetime.datetime.combine(datetime.date.today(), e) - datetime.timedelta(seconds=delta)
             e = e.time()
+
         # 返回对应的状态
-        print(b, now, e)
         if b <= now < e:
             return s
     else:
