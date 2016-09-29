@@ -136,11 +136,14 @@ futures_tradeing_time = {
 }
 
 
-def get_trading_status(future, now=None):
+def get_trading_status(future, now=None, delta=0):
     now = now or datetime.datetime.now().time()
     # 时间列表
     trading_time = futures_tradeing_time[future]
     for b, e, s in trading_time:
+        # 计算延迟
+        b += datetime.timedelta(seconds=delta)
+        e -= datetime.timedelta(seconds=delta)
         # 返回对应的状态
         if b <= now < e:
             return s
