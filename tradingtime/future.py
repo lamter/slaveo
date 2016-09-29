@@ -1,6 +1,7 @@
 # coding: utf-8
 from itertools import chain
 import datetime
+import doctest
 
 closed = 0
 call_auction = 1  # 集合竞价
@@ -137,6 +138,15 @@ futures_tradeing_time = {
 
 
 def get_trading_status(future, now=None, delta=0):
+    """
+    >>> get_trading_status('rb', delta=10)
+    3
+
+    :param future:
+    :param now:
+    :param delta:
+    :return:
+    """
     now = now or datetime.datetime.now().time()
     # 时间列表
     trading_time = futures_tradeing_time[future]
@@ -158,6 +168,10 @@ def get_trading_status(future, now=None, delta=0):
 
 def is_any_trading(now=None, delta=0):
     """
+    >>> import datetime
+    >>> is_any_trading(datetime.time(1, 50))
+    True
+
     至少有一个品种在交易中
     :return:
     """
@@ -172,4 +186,4 @@ def is_any_trading(now=None, delta=0):
 
 
 if __name__ == "__main__":
-    print(get_trading_status('rb', delta=10))
+    doctest.testmod()
