@@ -156,5 +156,20 @@ def get_trading_status(future, now=None, delta=0):
         return closed
 
 
+def is_any_trading(now=None, delta=0):
+    """
+    至少有一个品种在交易中
+    :return:
+    """
+    now = now or datetime.datetime.now()
+    futures = list(futures_tradeing_time.keys())
+    futures.sort()
+    for f in futures:
+        if get_trading_status(f, now, delta) != closed:
+            return True
+    else:
+        return False
+
+
 if __name__ == "__main__":
     print(get_trading_status('rb', delta=10))
