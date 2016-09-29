@@ -161,7 +161,7 @@ def is_any_trading(now=None, delta=0):
     至少有一个品种在交易中
     :return:
     """
-    now = now or datetime.datetime.now()
+    now = now or datetime.datetime.now().time()
     futures = list(futures_tradeing_time.keys())
     futures.sort()
     for f in futures:
