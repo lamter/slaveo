@@ -159,7 +159,7 @@ def get_trading_status(future, now=None, delta=0):
             e = e.time()
 
         # 返回对应的状态
-        if b <= now < e:
+        if b <= now <= e:
             return s
     else:
         # 不在列表中则为休市状态

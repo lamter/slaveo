@@ -7,7 +7,7 @@ def read(fname):
         return f.read()
 
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 setup(name='slaveo',
       version=__version__,
