@@ -23,7 +23,7 @@ CFFEX_ndd = (
     [t(9, 10), t(9, 14), call_auction],  # 集合竞价
     [t(9, 14), t(9, 15), call_auction],  # 撮合
     [t(9, 15), t(11, 30), continuous_auction],  # 连续竞价
-    [t(13, 0), t(15, 0), continuous_auction],  # 连续竞价
+    [t(13, 0), t(15, 15), continuous_auction],  # 连续竞价
 )
 
 # 郑商所日盘
