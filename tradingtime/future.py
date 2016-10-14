@@ -137,14 +137,15 @@ futures_tradeing_time = {
 }
 
 
-def get_trading_status(future, now=None, delta=0):
+def get_trading_status(future, now=None, ahead=0, delta=0):
     """
     >>> get_trading_status('rb', delta=10)
     3
 
     :param future:
     :param now:
-    :param delta:
+    :param ahead: 提前结束 10, 提前 10秒结束
+    :param delta: 延迟开始 5, 延迟5秒开始
     :return:
     """
     now = now or datetime.datetime.now().time()
@@ -155,7 +156,8 @@ def get_trading_status(future, now=None, delta=0):
         if delta != 0:
             b = datetime.datetime.combine(datetime.date.today(), b) + datetime.timedelta(seconds=delta)
             b = b.time()
-            e = datetime.datetime.combine(datetime.date.today(), e) - datetime.timedelta(seconds=delta)
+        if ahead != 0:
+            e = datetime.datetime.combine(datetime.date.today(), e) - datetime.timedelta(seconds=ahead)
             e = e.time()
 
         # 返回对应的状态

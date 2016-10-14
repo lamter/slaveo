@@ -31,9 +31,12 @@ class Futures(object):
         :return:
         """
         start = pd.to_datetime(start) if start else self.df.datetime.min()
-        df = self.df[self.df.datetime >= start].reset_index()
+        df = self.df[self.df.datetime >= start]
 
-        first = df.loc[0, col]  # 初始资产
+        # 初始权益为净值起始日的前一交易日的收盘时权益
+        first = self.df.loc[df.index.min(), col]
+
+        df = df.reset_index()
 
         # 生成周期
         nav_se = df.set_index("tradeDay")[col].resample(
