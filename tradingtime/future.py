@@ -2,6 +2,28 @@
 from itertools import chain
 import datetime
 import doctest
+import os
+
+import pandas as pd
+
+
+def get_tradedays():
+    path = os.path.split(__file__)[0]
+    csv = os.path.join(path, 'tradeday.csv')
+
+    tradedays = pd.read_csv(
+        csv,
+        index_col='date',
+        keep_date_col=True,
+    )
+
+    tradedays.index = pd.DatetimeIndex(tradedays.index)
+    tradedays.next_td = pd.to_datetime(tradedays.next_td)
+    return tradedays.T.to_dict()
+
+
+# 交易日历
+tradedays = get_tradedays()
 
 closed = 0
 call_auction = 1  # 集合竞价
@@ -139,7 +161,7 @@ futures_tradeing_time = {
 
 def get_trading_status(future, now=None, ahead=0, delta=0):
     """
-    >>> get_trading_status('rb', delta=10)
+    >>> get_trading_status('rb', now=datetime.time(10,0,0), delta=10)
     3
 
     :param future:
@@ -168,20 +190,24 @@ def get_trading_status(future, now=None, ahead=0, delta=0):
         return closed
 
 
-def is_any_trading(now=None, delta=0):
+def is_any_trading(now=None, delta=0, ahead=0):
     """
     >>> import datetime
-    >>> is_any_trading(datetime.time(1, 50))
-    True
+    >>> is_any_trading(datetime.datetime(2016, 10, 22, 15, 56 ,24))
+    False
 
     至少有一个品种在交易中
     :return:
     """
-    now = now or datetime.datetime.now().time()
+    now = now or datetime.datetime.now()
+
+    if not tradedays[pd.to_datetime(now.date())]['is_tradeday']:
+        return False
+
     futures = list(futures_tradeing_time.keys())
     futures.sort()
     for f in futures:
-        if get_trading_status(f, now, delta) != closed:
+        if get_trading_status(f, now.time(), delta, ahead) != closed:
             return True
     else:
         return False
