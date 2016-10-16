@@ -118,7 +118,7 @@ class Futures(object):
             col: nav_se,
         }).reset_index()
 
-        nav_df['isTradingTime'] = nav_df.datetime.apply(lambda dt: tt.is_any_trading(dt.time()))
+        nav_df['isTradingTime'] = nav_df.datetime.apply(lambda dt: tt.is_any_trading(dt))
         nav_df = nav_df.set_index("datetime")
         nav_se = nav_se[nav_df.isTradingTime]
 
