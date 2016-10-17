@@ -75,15 +75,13 @@ SHFE_d = CZCE_d
 SHFE_n1 = (
     [t(20, 55), t(20, 59), call_auction],  # 集合竞价
     [t(20, 59), t(21, 0), call_auction],  # 撮合
-    [t(21, 0), t(23, 59, 59), continuous_auction],  # 连续竞价
-    [t(0, 0), t(2, 30), continuous_auction],  # 连续竞价
+    [t(21, 0), t(2, 30), continuous_auction],  # 连续竞价
 )
 # 上期所深夜盘2
 SHFE_n2 = (
     [t(20, 55), t(20, 59), call_auction],  # 集合竞价
     [t(20, 59), t(21, 0), call_auction],  # 撮合
-    [t(21, 0), t(23, 59, 59), continuous_auction],  # 连续竞价
-    [t(0, 0), t(1, 0), continuous_auction],  # 连续竞价
+    [t(21, 0), t(1, 0), continuous_auction],  # 连续竞价
 )
 # 上期所深夜盘3
 SHFE_n3 = (
@@ -158,6 +156,9 @@ futures_tradeing_time = {
     "fu": SHFE_d,  # 燃料油1709
 }
 
+futures = list(futures_tradeing_time.keys())
+futures.sort()
+
 
 def get_trading_status(future, now=None, ahead=0, delta=0):
     """
@@ -183,8 +184,8 @@ def get_trading_status(future, now=None, ahead=0, delta=0):
             e = e.time()
 
         # 返回对应的状态
-        if b <= now < e:
-            return s
+        return b <= now < e or e < b <= now  # 后一种情况跨天了
+
     else:
         # 不在列表中则为休市状态
         return closed
@@ -204,8 +205,6 @@ def is_any_trading(now=None, delta=0, ahead=0):
     if not tradedays[pd.to_datetime(now.date())]['is_tradeday']:
         return False
 
-    futures = list(futures_tradeing_time.keys())
-    futures.sort()
     for f in futures:
         if get_trading_status(f, now.time(), delta, ahead) != closed:
             return True
