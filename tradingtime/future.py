@@ -3,27 +3,37 @@ from itertools import chain
 import datetime
 import doctest
 import os
+import json
 
+import arrow
+import calendar
 import pandas as pd
 
+# 交易日类型
+TRADE_DAY_TYPE_FIRST = 0  # 假期后第一个交易日
+TRADE_DAY_TYPE_NORMAL = 1  # 正常交易日
+TRADE_DAY_TYPE_FRI = 2  # 正常周五
+TRADE_DAY_TYPE_SAT = 3  # 正常周六
+TRADE_DAY_TYPE_HOLIDAY = 4  # 假期
+TRADE_DAY_TYPE_LAST = 5  # 长假前最后一个交易日
+TRADE_DAY_TYPE_HOLIDAY_FIRST = 6  # 长假第一天
 
-def get_tradedays():
-    path = os.path.split(__file__)[0]
-    csv = os.path.join(path, 'tradeday.csv')
+# 假期时间表
+# H = [
+#     ["2016-01-01", "2016-01-03"],  # 元旦
+#     ["2016-02-06", "2016-02-14"],  # 春节
+#     ["2016-04-02", "2016-04-04"],  # 清明节
+#     ["2016-04-30", "2016-05-02"],  # 劳动节
+#     ["2016-06-09", "2016-06-12"],  # 端午节
+#     ["2016-09-15", "2016-09-18"],  # 中秋节
+#     ["2016-10-01", "2016-10-09"],  # 国庆节
+# ]
+# HOLIDAYS = list(map(
+#     lambda ds: [pd.to_datetime(ds[0]).date(), pd.to_datetime(ds[1]).date()],
+#     H
+# ))
 
-    tradedays = pd.read_csv(
-        csv,
-        index_col='date',
-        keep_date_col=True,
-    )
 
-    tradedays.index = pd.DatetimeIndex(tradedays.index)
-    tradedays.next_td = pd.to_datetime(tradedays.next_td)
-    return tradedays.T.to_dict()
-
-
-# 交易日历
-tradedays = get_tradedays()
 
 closed = 0
 call_auction = 1  # 集合竞价
@@ -156,6 +166,176 @@ futures_tradeing_time = {
     "fu": SHFE_d,  # 燃料油1709
 }
 
+# 日盘开始
+DAY_LINE = datetime.time(3)
+# 夜盘开始
+NIGHT_LINE = datetime.time(20, 30)
+# 午夜盘
+MIDNIGHT_LINE = datetime.time(20, 30)
+
+
+class FutureTradeCalendar(object):
+    """
+    期货的交易日生成
+    """
+
+    def __init__(self, begin=None, end=None):
+        self.begin = begin or self.yearbegin()
+        self.end = end or self.yearend()  # 次年1月10日
+        self.holiday = None
+
+        # holidays = []
+        # for k, v in json.load('holiday.json'):
+        #     start, end = v
+        #     holidays.extend(pd.date_range(start, end))
+        # self.holidays = pd.DatetimeIndex(holidays)
+        # holidays = []
+        # for h in HOLIDAYS:
+        #     holidays.extend(pd.date_range(*h))
+        # self.holidays = pd.DataFrame(data=TRADE_DAY_TYPE_HOLIDAY, index=pd.DatetimeIndex(holidays))
+
+        # 交易日历
+        self.calendar = self.getCalendar()
+
+    @staticmethod
+    def yearbegin():
+        now = arrow.now()
+        return arrow.get("%s-01-01 00:00:00" % now.year).date()
+
+    @staticmethod
+    def yearend():
+        now = arrow.now()
+        return arrow.get("%s-01-10 00:00:00" % (now.year + 1)).date()
+
+    def getCalendar(self):
+        """
+        生成交易日
+        :return:
+        """
+
+        tradecalendar = pd.DataFrame(data=pd.date_range(self.begin, self.end), columns=['date'])
+        # tradedays["is_tradeday"] = tradedays.date.apply(lambda d: d.weekday() not in [5,6])
+
+        types = []
+        weekdays = []
+        for dt in tradecalendar["date"]:
+            # TODO 再处理节假日
+            weekday = dt.date().weekday()
+            # 后处理正常交易日
+            if weekday == calendar.MONDAY:
+                # 假期后第一个交易日
+                _types = TRADE_DAY_TYPE_FIRST
+            elif weekday == calendar.FRIDAY:
+                # 正常周五
+                _types = TRADE_DAY_TYPE_FRI
+            elif weekday == calendar.SATURDAY:
+                # 正常周六
+                _types = TRADE_DAY_TYPE_SAT
+            elif weekday == calendar.SUNDAY:
+                # 假期
+                _types = TRADE_DAY_TYPE_HOLIDAY
+            else:
+                # 正常交易日
+                _types = TRADE_DAY_TYPE_NORMAL
+
+            types.append(_types)
+            weekdays.append(weekday)
+
+        tradecalendar["type"] = types
+        tradecalendar["weekday"] = weekdays
+        tradecalendar["weekday"] += 1
+
+        # # 下一交易日
+        next_td = tradecalendar[(tradecalendar["type"] == TRADE_DAY_TYPE_FIRST)
+                                | (tradecalendar["type"] == TRADE_DAY_TYPE_NORMAL)
+                                | (tradecalendar["type"] == TRADE_DAY_TYPE_FRI)
+                                | (tradecalendar["type"] == TRADE_DAY_TYPE_LAST)].copy()
+        # 向后移一天
+        next_td['next_td'] = next_td["date"].shift(-1)
+        # 获得下一个交易日, 并且向前填充, 即周六周日的下一交易日为下周一
+
+        tradecalendar['next_td'] = next_td['next_td']
+        tradecalendar['next_td'] = tradecalendar['next_td'].fillna(method='pad')
+
+        # 当前交易日
+        # 假期的当前交易日为下一交易日
+        td = tradecalendar[(tradecalendar["type"] == TRADE_DAY_TYPE_SAT)
+                           | (tradecalendar["type"] == TRADE_DAY_TYPE_HOLIDAY)
+                           | (tradecalendar["type"] == TRADE_DAY_TYPE_HOLIDAY_FIRST)
+                           ]
+
+        tradecalendar['tradeday'] = td["next_td"]
+        tradecalendar["tradeday"] = tradecalendar['tradeday'].fillna(tradecalendar["date"])
+
+        # 最后一天的数据不完整,去掉
+        tradecalendar = tradecalendar[:-1]
+
+        # 日盘 *能* 交易的
+        day_trade = tradecalendar[
+            (tradecalendar.type == TRADE_DAY_TYPE_FIRST)  # 假期后第一个交易日
+            | (tradecalendar.type == TRADE_DAY_TYPE_NORMAL)  # 正常交易日
+            | (tradecalendar.type == TRADE_DAY_TYPE_FRI)  # 正常周五
+            # | (tradecalendar.type == TRADE_DAY_TYPE_SAT)  # 正常周六
+            # | (tradecalendar.type == TRADE_DAY_TYPE_HOLIDAY)  # 假期
+            | (tradecalendar.type == TRADE_DAY_TYPE_LAST)  # 长假前最后一个交易日
+            | (tradecalendar.type == TRADE_DAY_TYPE_HOLIDAY_FIRST)  # 长假第一天
+            ]
+        day_trade["day_trade"] = True
+        tradecalendar["day_trade"] = day_trade["day_trade"]
+        tradecalendar["day_trade"] = tradecalendar["day_trade"].fillna(False)
+
+        # 夜盘 *能* 交易的
+        night_trade = tradecalendar[
+            (tradecalendar.type == TRADE_DAY_TYPE_FIRST)  # 假期后第一个交易日
+            | (tradecalendar.type == TRADE_DAY_TYPE_NORMAL)  # 正常交易日
+            | (tradecalendar.type == TRADE_DAY_TYPE_FRI)  # 正常周五
+            # | (tradecalendar.type == TRADE_DAY_TYPE_SAT)  # 正常周六
+            # | (tradecalendar.type == TRADE_DAY_TYPE_HOLIDAY)  # 假期
+            # | (tradecalendar.type == TRADE_DAY_TYPE_LAST)  # 长假前最后一个交易日
+            # | (tradecalendar.type == TRADE_DAY_TYPE_HOLIDAY_FIRST)  # 长假第一天
+            ]
+        night_trade["night_trade"] = True
+        tradecalendar["night_trade"] = night_trade["night_trade"]
+        tradecalendar["night_trade"] = tradecalendar["night_trade"].fillna(False)
+
+        # 午夜盘不能交易的, 所有假日
+        midnight_trade = tradecalendar[
+            # (tradecalendar.type == TRADE_DAY_TYPE_FIRST)  # 假期后第一个交易日
+            (tradecalendar.type == TRADE_DAY_TYPE_NORMAL)  # 正常交易日
+            | (tradecalendar.type == TRADE_DAY_TYPE_FRI)  # 正常周五
+            | (tradecalendar.type == TRADE_DAY_TYPE_SAT)  # 正常周六
+            # | (tradecalendar.type == TRADE_DAY_TYPE_HOLIDAY)  # 假期
+            | (tradecalendar.type == TRADE_DAY_TYPE_LAST)  # 长假前最后一个交易日
+            # | (tradecalendar.type == TRADE_DAY_TYPE_HOLIDAY_FIRST)  # 长假第一天
+            ]
+        midnight_trade["midnight_trade"] = True
+        tradecalendar["midnight_trade"] = midnight_trade["midnight_trade"]
+        tradecalendar["midnight_trade"] = tradecalendar["midnight_trade"].fillna(False)
+
+        return tradecalendar.set_index("date")
+
+    def get_tradeday(self, now):
+        """
+        返回一个日期的信息
+        :param now:
+        :return: bool(是否交易日), 当前交易日
+        """
+        t = now.time()
+        day = self.calendar.ix[now.date()]
+        if DAY_LINE < t < NIGHT_LINE:
+            # 日盘, 当前交易日
+            return day.day_trade, day.tradeday
+        elif NIGHT_LINE < t:
+            # 夜盘
+            return day.night_trade, day.next_td
+        else:
+            # 午夜盘
+            return day.midnight_trade, day.next_td
+
+
+# 交易日历
+futureTradeCalendar = FutureTradeCalendar()
+
 futures = list(futures_tradeing_time.keys())
 futures.sort()
 
@@ -201,8 +381,9 @@ def is_any_trading(now=None, delta=0, ahead=0):
     :return:
     """
     now = now or datetime.datetime.now()
-
-    if not tradedays[pd.to_datetime(now.date())]['is_tradeday']:
+    is_trade, tradeday = futureTradeCalendar.get_tradeday(now)
+    if not is_trade:
+        # 当前日/夜/午夜盘不开盘
         return False
 
     for f in futures:
@@ -211,6 +392,5 @@ def is_any_trading(now=None, delta=0, ahead=0):
     else:
         return False
 
-
-if __name__ == "__main__":
-    doctest.testmod()
+# if __name__ == "__main__":
+#     doctest.testmod()

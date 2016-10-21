@@ -5,7 +5,6 @@
 import datetime
 
 import pandas as pd
-import tradingtime as tt
 
 
 # from .nav import Nav
@@ -114,13 +113,13 @@ class Futures(object):
             label="right",
         ).last().dropna()
 
-        nav_df = pd.DataFrame({
-            col: nav_se,
-        }).reset_index()
+        # nav_df = pd.DataFrame({
+        #     col: nav_se,
+        # }).reset_index()
 
-        nav_df['isTradingTime'] = nav_df.datetime.apply(lambda dt: tt.is_any_trading(dt))
-        nav_df = nav_df.set_index("datetime")
-        nav_se = nav_se[nav_df.isTradingTime]
+        # nav_df['isTradingTime'] = nav_df.datetime.apply(lambda dt: tt.is_any_trading(dt))
+        # nav_df = nav_df.set_index("datetime")
+        # nav_se = nav_se[nav_df.isTradingTime]
 
         # 将净值设为1
         nav_se /= nav_se[0]
