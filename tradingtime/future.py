@@ -363,8 +363,9 @@ def get_trading_status(future, now=None, ahead=0, delta=0):
             e = datetime.datetime.combine(datetime.date.today(), e) - datetime.timedelta(seconds=ahead)
             e = e.time()
 
-        # 返回对应的状态
-        return b <= now < e or e < b <= now  # 后一种情况跨天了
+        if b <= now < e or e < b <= now:  # 后一种情况跨天了
+            # 返回对应的状态
+            return s
 
     else:
         # 不在列表中则为休市状态
