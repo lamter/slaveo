@@ -45,7 +45,7 @@ t = datetime.time
 # 中金所股指期货日盘
 CFFEX_sid = (
     [t(9, 25), t(9, 29), call_auction],  # 集合竞价
-    [t(9, 29), t(9, 30), call_auction],  # 撮合
+    [t(9, 29), t(9, 30), match],  # 撮合
     [t(9, 30), t(11, 30), continuous_auction],  # 连续竞价
     [t(13, 0), t(15, 0), continuous_auction],  # 连续竞价
 )
@@ -53,7 +53,7 @@ CFFEX_sid = (
 # 中金所国债期货日盘
 CFFEX_ndd = (
     [t(9, 10), t(9, 14), call_auction],  # 集合竞价
-    [t(9, 14), t(9, 15), call_auction],  # 撮合
+    [t(9, 14), t(9, 15), match],  # 撮合
     [t(9, 15), t(11, 30), continuous_auction],  # 连续竞价
     [t(13, 0), t(15, 15), continuous_auction],  # 连续竞价
 )
@@ -61,7 +61,7 @@ CFFEX_ndd = (
 # 郑商所日盘
 CZCE_d = (
     [t(8, 55), t(8, 59), call_auction],  # 集合竞价
-    [t(8, 59), t(9, 0), call_auction],  # 撮合
+    [t(8, 59), t(9, 0), match],  # 撮合
     [t(9, 0), t(10, 15), continuous_auction],  # 连续竞价
     [t(10, 30), t(11, 30), continuous_auction],  # 连续竞价
     [t(13, 30), t(15, 0), continuous_auction],  # 连续竞价
@@ -70,7 +70,7 @@ CZCE_d = (
 # 郑商所夜盘
 CZCE_n = (
     [t(20, 55), t(20, 59), call_auction],  # 集合竞价
-    [t(20, 59), t(21, 0), call_auction],  # 撮合
+    [t(20, 59), t(21, 0), match],  # 撮合
     [t(21, 0), t(23, 30), continuous_auction],  # 连续竞价
 )
 
@@ -344,14 +344,37 @@ def get_trading_status(future, now=None, ahead=0, delta=0):
     """
     >>> get_trading_status('rb', now=datetime.time(10,0,0), delta=10)
     3
+    >>> future = 'ag'
+    >>> today = datetime.date.today()
+    >>> for b, e, s in futures_tradeing_time[future]:
+    ...     now = datetime.datetime.combine(today, b) + datetime.timedelta(seconds=30)
+    ...     s == get_trading_status(future, now.time(), ahead=10, delta=10)
+    ...
+    True
+    True
+    True
+    True
+    True
+    True
+    True
+    True
+    >>> get_trading_status(future, datetime.time(0,5,10), ahead=10, delta=10)
+    3
+    >>> get_trading_status(future, datetime.time(23,59,59), ahead=10, delta=10)
+    3
+    >>> get_trading_status('ag', datetime.time(0, 0, 0), ahead=10, delta=10)
+    3
 
     :param future:
     :param now:
     :param ahead: 提前结束 10, 提前 10秒结束
     :param delta: 延迟开始 5, 延迟5秒开始
     :return:
+
     """
-    now = now or datetime.datetime.now().time()
+
+    if now is None:
+        now = datetime.datetime.now().time()
     # 时间列表
     trading_time = futures_tradeing_time[future]
     for b, e, s in trading_time:
@@ -362,11 +385,9 @@ def get_trading_status(future, now=None, ahead=0, delta=0):
         if ahead != 0:
             e = datetime.datetime.combine(datetime.date.today(), e) - datetime.timedelta(seconds=ahead)
             e = e.time()
-
-        if b <= now < e or e < b <= now:  # 后一种情况跨天了
+        if b <= now < e or (e < b <= now or now < e < b):  # 后一种情况跨天了
             # 返回对应的状态
             return s
-
     else:
         # 不在列表中则为休市状态
         return closed
