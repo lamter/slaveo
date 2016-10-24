@@ -318,7 +318,11 @@ class FutureTradeCalendar(object):
         """
         返回一个日期的信息
         :param now:
-        :return: bool(是否交易日), 当前交易日
+        :return: bool(是否交易时段), 当前交易日
+        >>> now = datetime.datetime(2016,10, 22) # 周五的交易日是下周一
+        >>> futureTradeCalendar.get_tradeday(now)
+        (True, Timestamp('2016-10-24 00:00:00'))
+
         """
         t = now.time()
         day = self.calendar.ix[now.date()]
@@ -363,6 +367,8 @@ def get_trading_status(future, now=None, ahead=0, delta=0):
     >>> get_trading_status(future, datetime.time(23,59,59), ahead=10, delta=10)
     3
     >>> get_trading_status('ag', datetime.time(0, 0, 0), ahead=10, delta=10)
+    3
+    >>> get_trading_status('IC', delta=10)
     3
 
     :param future:
