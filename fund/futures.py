@@ -30,7 +30,7 @@ class Futures(object):
         :return:
         """
         start = pd.to_datetime(start) if start else self.df.datetime.min()
-        df = self.df[self.df.datetime >= start]
+        df = self.df[self.df.tradeDay >= start]
 
         # 初始权益为净值起始日的前一交易日的收盘时权益
         first = self.df.loc[df.index.min(), col]
@@ -38,11 +38,13 @@ class Futures(object):
         df = df.reset_index()
 
         # 生成周期
-        nav_se = df.set_index("tradeDay")[col].resample(
-            "1T",
-            closed="left",
-            label="left"
-        ).last().dropna().sort_index()
+        # nav_se = df.set_index("tradeDay")[col].resample(
+        #     "1T",
+        #     closed="left",
+        #     label="left"
+        # ).last().dropna().sort_index()
+
+        nav_se = df.groupby("tradeDay").apply(lambda t: t[t.datetime == t.datetime.max()]).set_index("tradeDay")[col]
 
         # 日净值计算
         delta = first - origin
@@ -137,3 +139,28 @@ class Futures(object):
             return pd.to_datetime(dt.date())
         else:
             return pd.to_datetime(dt.date() + datetime.timedelta(days=1))
+
+    @staticmethod
+    def m_create_table(df):
+        """
+        从pandas的DataFrame生成markdown格式表格
+        :param df:
+        :return:
+        """
+        if len(df) == 0:
+            return ''
+
+        datas = []
+        head = '|'.join(df.columns)
+        head = "|" + head + "|"
+        datas.append(head)
+
+        datas.append("|" + ' --: |' * len(df.columns))
+        for ix, row in df.iterrows():
+            data = '|'.join(map(lambda x: str(x), row.get_values()))
+            data = "|" + data + "|"
+            datas.append(data)
+
+        result = '\n'.join(datas)
+        # print result
+        return result
