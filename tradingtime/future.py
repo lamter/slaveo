@@ -319,22 +319,23 @@ class FutureTradeCalendar(object):
         返回一个日期的信息
         :param now:
         :return: bool(是否交易时段), 当前交易日
-        >>> now = datetime.datetime(2016,10, 22) # 周五的交易日是下周一
+        >>> now = datetime.datetime(2016,10, 25, 0, 0, 0) # 周五的交易日是下周一
         >>> futureTradeCalendar.get_tradeday(now)
-        (True, Timestamp('2016-10-24 00:00:00'))
+        (True, Timestamp('2016-10-25 00:00:00'))
 
         """
+
         t = now.time()
         day = self.calendar.ix[now.date()]
         if DAY_LINE < t < NIGHT_LINE:
             # 日盘, 当前交易日
             return day.day_trade, day.tradeday
         elif NIGHT_LINE < t:
-            # 夜盘
+            # 夜盘，下一个交易日
             return day.night_trade, day.next_td
         else:
-            # 午夜盘
-            return day.midnight_trade, day.next_td
+            # 午夜盘，已经过了零点了，当前交易日
+            return day.midnight_trade, day.tradeday
 
 
 # 交易日历

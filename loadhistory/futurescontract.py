@@ -48,7 +48,7 @@ class LoadFuturesContract:
             encoding='gbk',
         )
 
-    def toTurtle(self):
+    def to_turtle(self):
         """
         清洗格式,用于海龟法则
         :return:
@@ -61,6 +61,7 @@ class LoadFuturesContract:
         # 按照交易所分组
         exchange_group = hy.groupby("exchange")
 
+        # vnpy 中导出的合约
         cf = None
         # 上海期货交易所, 郑州商品交易所, 大连商品交易所, 中金所
         for g in ["SHFE", "CZCE", "DCE", "CFFEX"]:
@@ -121,7 +122,7 @@ class LoadFuturesContract:
         :param p:
         :return:
         """
-        # 从目录获得对应的文件名
+        # 从日线目录获得对应的文件名
         files = None
         for path, n, files in os.walk(self.his_path):
             files = [f for f in files if '#' in f]
@@ -140,16 +141,17 @@ class LoadFuturesContract:
         # 交割月
         files['mon'] = files.contract.apply(self.filter_mon)
 
+        # 日线目录中的 files 里面的合约会比 vnpy 合约里面的少
         old_symbols = set(cf['symbol'])
 
         cf = pd.merge(cf, files, left_on=['FUTURE', 'mon'], right_on=['FUTURE', 'mon'])
         new_symbols = set(cf['symbol'])
 
-        # 检查合约是否丢失
-        if old_symbols != new_symbols:
-            exe = 'less: %s' % ','.join(old_symbols - new_symbols)
-            exe += '\nmore: %s' % ','.join(new_symbols - old_symbols)
-            raise ValueError(exe)
+        # # 检查合约是否丢失
+        # if old_symbols != new_symbols:
+        #     exe = 'less: %s' % ','.join(old_symbols - new_symbols)
+        #     exe += '\nmore: %s' % ','.join(new_symbols - old_symbols)
+        #     raise ValueError(exe)
 
         # 逐个计算最近5日的交易量
         volumes = []
@@ -246,3 +248,4 @@ class LoadFuturesContract:
             "vtSymbol": "",
             "className": "TurtlePosition"
         }
+
