@@ -114,7 +114,7 @@ class LoadFuturesContract:
         max_volume = cf.groupby('future').apply(lambda t: t[t.volume == t.volume.max()])
 
         # 获得可用于海龟策略的合约
-        return max_volume
+        return max_volume.reset_index(drop=True)
 
     def volume_from_tdx(self, cf, num=5):
         """
@@ -216,7 +216,7 @@ class LoadFuturesContract:
     def to_vnpy_cta_setting(cls, cf, setting):
         """
         用于 VNPY 的 CTA_setting.json 文件的配置
-        :param df:
+        :param cf: df[["symbol", "future"]]
         :return:
         """
         cf = cf.reset_index(drop=True)
@@ -228,7 +228,8 @@ class LoadFuturesContract:
         if lack:
             raise ValueError(u"%s not in setting" % ','.join(lack))
 
-        df = pd.DataFrame({'vtSymbol': cf.symbol, "future": cf.future})
+        df = cf.copy()
+        # df = pd.DataFrame({'vtSymbol': cf.symbol, "future": cf.future})
 
         # name
         name_suffix = setting.pop('name_suffix')

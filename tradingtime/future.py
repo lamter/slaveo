@@ -180,6 +180,17 @@ class FutureTradeCalendar(object):
     """
 
     def __init__(self, begin=None, end=None):
+        """
+        self.calendar 格式如下
+            type  weekday    next_td   tradeday day_trade night_trade  midnight_trade
+date
+2016-01-01     2        5 2016-01-04 2016-01-01      True        True           True
+2016-01-02     3        6 2016-01-04 2016-01-04     False       False           True
+
+        :param begin:
+        :param end:
+        """
+
         self.begin = begin or self.yearbegin()
         self.end = end or self.yearend()  # 次年1月10日
         self.holiday = None
@@ -336,6 +347,16 @@ class FutureTradeCalendar(object):
         else:
             # 午夜盘，已经过了零点了，当前交易日
             return day.midnight_trade, day.tradeday
+
+    def get_tradeday_opentime(self, tradeday):
+        """
+        获得交易日的起始日，比如长假后第一个交易日的起始日应该为节前的最后一个交易日
+        :return:
+        """
+        calendar = self.calendar[self.calendar.next_td == tradeday]
+        return calendar.index[0].date()
+
+
 
 
 # 交易日历

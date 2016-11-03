@@ -5,6 +5,7 @@
 import datetime
 
 import pandas as pd
+import tradingtime as tt
 
 
 # from .nav import Nav
@@ -18,7 +19,7 @@ class Futures(object):
     def __init__(self, df):
         self.df = df.sort_values("datetime")  # 原始数据
         if "tradeDay" not in self.df.columns:
-            self.df["tradeDay"] = self.df.datetime.apply(self.get_tradeday)
+            self.df["tradeDay"] = self.df.datetime.apply(tt.futureTradeCalendar.get_tradeday)
 
     def nav_d(self, col="balance", start=None, origin=0):
         """
@@ -99,12 +100,12 @@ class Futures(object):
         # 截取要显示的一段
         nav_df = df[df.tradeDay == tradeDay]
         if t == 'd':  # 日盘 only
-            beginTime = datetime.datetime.combine(tradeDay, datetime.time(9))
-            nav_df = nav_df[beginTime <= nav_df.datetime]
+            begintime = datetime.datetime.combine(tradeDay, datetime.time(9))
+            nav_df = nav_df[begintime <= nav_df.datetime]
         elif t == 'a':  # 全日
-            beginTime = datetime.datetime.combine(tradeDay - datetime.timedelta(days=1), datetime.time(21))
-            nav_df = nav_df[beginTime <= nav_df.datetime]
-
+            begindate = tt.futureTradeCalendar.get_tradeday_opentime(tradeDay)
+            begintime = datetime.datetime.combine(begindate, datetime.time(21))
+            nav_df = nav_df[begintime <= nav_df.datetime]
         # 实际资本
         nav_se = nav_df.set_index("datetime")[col] - delta
 
@@ -115,30 +116,11 @@ class Futures(object):
             label="right",
         ).last().dropna()
 
-        # nav_df = pd.DataFrame({
-        #     col: nav_se,
-        # }).reset_index()
-
-        # nav_df['isTradingTime'] = nav_df.datetime.apply(lambda dt: tt.is_any_trading(dt))
-        # nav_df = nav_df.set_index("datetime")
-        # nav_se = nav_se[nav_df.isTradingTime]
-
         # 将净值设为1
         nav_se /= nav_se[0]
 
         # 保留小数
         return nav_se.apply(lambda x: round(x, 3))
-
-    def get_tradeday(self, dt):
-        """
-
-        :param dt:
-        :return:
-        """
-        if dt.time() > datetime.time(20):
-            return pd.to_datetime(dt.date())
-        else:
-            return pd.to_datetime(dt.date() + datetime.timedelta(days=1))
 
     @staticmethod
     def m_create_table(df):
