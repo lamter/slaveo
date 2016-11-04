@@ -100,7 +100,7 @@ class Futures(object):
         # 截取要显示的一段
         nav_df = df[df.tradeDay == tradeDay]
         if t == 'd':  # 日盘 only
-            begintime = datetime.datetime.combine(tradeDay, datetime.time(9))
+            begintime = datetime.datetime.combine(tradeDay, datetime.time(8, 59, 30))
             nav_df = nav_df[begintime <= nav_df.datetime]
         elif t == 'a':  # 全日
             begindate = tt.futureTradeCalendar.get_tradeday_opentime(tradeDay)

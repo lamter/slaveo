@@ -1,5 +1,10 @@
 # coding: utf-8
 
+import importlib
+from . import futures
+importlib.reload(futures)
 from .futures import *
-from .newbar import *
-from .futurescontract import *
+
+__all = [
+    "VnpyCtaLog",
+]
