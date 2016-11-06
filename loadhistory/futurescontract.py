@@ -12,7 +12,7 @@ import loadhistory
 
 class LoadFuturesContract:
     """
-    加载合约
+    从一份合约中加载合约
     """
     SOURCE_VNPY = 'vnpy'
 

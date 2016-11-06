@@ -1,5 +1,9 @@
 # coding: utf-8
 
-from .futures import *
+from .futures import LoadTdxMinHis
 from .newbar import *
 from .futurescontract import *
+
+__all__ = [
+    "LoadTdxMinHis",
+]
