@@ -1,11 +1,13 @@
 # coding: utf-8
 
 import logging
-import pandas as pd
-import numpy as np
 import datetime
 import os
 import json
+
+import pymongo
+import pandas as pd
+import numpy as np
 
 import loadhistory
 
@@ -14,9 +16,10 @@ class LoadFuturesContract:
     """
     从一份合约中加载合约
     """
-    SOURCE_VNPY = 'vnpy'
+    SOURCE_VNPY = 'vnpy'  # 从 vnpy 图形界面导出的 .csv 文件
+    SOURCE_VNPY_DR = 'vnpydr'  # vnpy 的 dataRecord 模块保存的每日合约
 
-    def __init__(self, path, source, his_path):
+    def __init__(self, source, path=None, his_path=None, host=None, dbn=None, collection=None):
         """
 
         :param path:
@@ -24,11 +27,13 @@ class LoadFuturesContract:
         """
         self.path = path  # 合约文件路径
         self.source = source  # 合约文件来源
-        self.data = None  # 合约信息
         self.his_path = his_path  # 历史数据文件路径
+        self.host = host or ("localhost", 27017)
+        self.dbn = dbn
+        self.collection = collection
 
         # 载入合约数据
-        self.load()
+        self.data = self.load()
 
     def load(self):
         """
@@ -36,17 +41,64 @@ class LoadFuturesContract:
         :return:
         """
         if self.source == self.SOURCE_VNPY:
+            logging.info(u"loading... type SOURCE_VNPY")
             return self.loadFromVnpy()
+        if self.source == self.SOURCE_VNPY_DR:
+            logging.info(u"loading... type SOURCE_VNPY_DR")
+            return self.loadFromVnpyDR()
+        else:
+            raise ValueError(u"未知的数据来源")
 
     def loadFromVnpy(self):
         """
         从 vnpy 中加载
         :return:
         """
-        self.data = pd.read_csv(
+        return pd.read_csv(
             self.path,
             encoding='gbk',
         )
+
+    def loadFromVnpyDR(self):
+        """
+        从 vnpy 的 dr 存库中获取合约
+        :param date: 指定日期的合约，如果没有指定，则默认是最新一天的合约
+        :return:
+        """
+        return self.get_contract_from_vnpydr()
+
+    def get_contract_from_vnpydr(self, date=None):
+        """
+        从 pymongo 数据库中查询合约
+        :param date:
+        :return:
+        """
+        ip, port = self.host
+        client = pymongo.MongoClient(ip, port)
+
+        client.server_info()
+
+        # 获取最新日期
+        db = client[self.dbn][self.collection]
+
+        query = {}
+        if date:
+            # 指定日期
+            query = {"datetime": pd.to_datetime(date)}
+        else:
+            # 最新的一天, 先取出最新的 30天
+            date = datetime.date.today() - datetime.timedelta(days=30)
+            query = {
+                "datetime": {"$gt": pd.to_datetime(date)}
+            }
+
+        # 查询，并生成
+        cursor = db.find(query)
+        contract = pd.DataFrame([c for c in cursor])
+        # 取出最新一天
+        contract = contract[contract.datetime == contract.datetime.max()]
+        # 根据交易所 - 品种进行排序
+        return contract.sort_values(["exchange", "symbol"])
 
     def to_turtle(self):
         """
@@ -249,4 +301,3 @@ class LoadFuturesContract:
             "vtSymbol": "",
             "className": "TurtlePosition"
         }
-

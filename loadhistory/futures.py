@@ -24,10 +24,8 @@ class LoadBase:
         :return:
         """
         self.symbol = symbol
-        client = pymongo.MongoClient("localhost", 27017)
-        self.db_bar1 = client["VnTrader_1Min_Db"][symbol]
-        self.db_bar10 = client["VnTrader_10Min_Db"][symbol]
-        self.db_day_bar1 = client["VnTrader_Daily_Db"][symbol]
+        self.client = pymongo.MongoClient("localhost", 27017)
+
         self.data = self.load(path)
 
     def load(self, path):
@@ -82,23 +80,34 @@ class LoadTdxMinHis(LoadBase):
         # 获得 action day
         return self.get_action_day(df)
 
-    def to_vnpy(self):
+    def to_vnpy(self, dbn_1min, dbn_5min, dbn_10min):
         """
         导入到vnpy的数据库中
         :return:
         """
-        self.to_vnpy_bar1()
-        self.to_vnpy_bar10()
+        self.to_vnpy_bar1(dbn_1min)
+        self.to_vnpy_bar5(dbn_5min)
+        self.to_vnpy_bar10(dbn_10min)
 
-    def to_vnpy_bar1(self):
-        db_bar1 = self.db_bar1
+    def to_vnpy_bar1(self, dbn_1min):
+        dbn_1min = self.client[dbn_1min]
+        db_bar1 = dbn_1min[self.symbol]
         data = self.data
         print(u"清空数据库%s" % db_bar1)
         db_bar1.drop()
         db_bar1.insert_many(data.to_dict('record'))
 
-    def to_vnpy_bar10(self):
-        db_bar10 = self.db_bar10
+    def to_vnpy_bar5(self, dbn_5min):
+        db_bar5 = self.client[dbn_5min][self.symbol]
+        data = self.data
+        # 转为5分钟K线
+        bar5 = NewMinuteBar(data, 5).new()
+        print(u"清空数据库%s" % db_bar5)
+        db_bar5.drop()
+        db_bar5.insert_many(bar5.to_dict('record'))
+
+    def to_vnpy_bar10(self, dbn_10min):
+        db_bar10 = self.client[dbn_10min][self.symbol]
         data = self.data
         # 转为10分钟K线
         bar10 = NewMinuteBar(data, 10).new()
@@ -124,17 +133,18 @@ class LoadTdxDailyHis(LoadBase):
             encoding='gbk',
         )
 
-    def to_vnpy(self):
+    def to_vnpy(self, dbn_1day):
         """
         :return:
         """
-        self.to_vnpy_day_bar1()
+        self.to_vnpy_day_bar1(dbn_1day)
 
-    def to_vnpy_day_bar1(self):
+    def to_vnpy_day_bar1(self, dbn_1day):
         """
         分钟线计算收盘价是不准确的,因为有收盘价和结算价,有些结算价是收盘最后3分钟的平均价格
         :return:
         """
+        self.db_day_bar1 = self.client["VnTrader_Daily_Db"][symbol]
         db_day_bar1 = self.db_day_bar1
         data = self.data
         db_day_bar1.drop()
