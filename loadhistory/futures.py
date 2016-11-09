@@ -11,7 +11,7 @@ except SystemError:
     pass
 
 
-class LoadBase:
+class LoadBase(object):
     """
     导入期货历史数据
     """
@@ -27,6 +27,12 @@ class LoadBase:
         self.client = pymongo.MongoClient("localhost", 27017)
 
         self.data = self.load(path)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.client:
+            # 关闭链接
+            self.client.close()
+
 
     def load(self, path):
         # 取得 actionDay, 有些 date 是 trade day ,夜盘问题
