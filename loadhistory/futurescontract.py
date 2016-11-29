@@ -272,6 +272,7 @@ class LoadFuturesContract:
         :return:
         """
         cf = cf.reset_index(drop=True)
+        cf["vtSymbol"] = cf["symbol"]
 
         lack = []
         for i in ['name_suffix', 'className']:
