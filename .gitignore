@@ -94,3 +94,4 @@ ENV/
 # cache
 tmp/
 ipw/
+*.zip

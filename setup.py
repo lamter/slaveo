@@ -7,12 +7,12 @@ def read(fname):
         return f.read()
 
 
-__version__ = "0.1.0"
+__version__ = "0.1.14"
 
 setup(name='slaveo',
       version=__version__,
       keywords='slaveo',
-      description='策略库',
+      description=u'交易相关的库',
       long_description=read("README.md"),
 
       url='https://github.com/lamter/slaveo',
