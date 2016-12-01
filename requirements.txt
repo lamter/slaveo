@@ -2,3 +2,4 @@ pandas
 tushare
 numpy
 TA-Lib
+arrow
