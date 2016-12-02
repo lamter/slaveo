@@ -3,3 +3,4 @@ tushare
 numpy
 TA-Lib
 arrow
+pymongo
