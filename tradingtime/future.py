@@ -402,7 +402,7 @@ def get_trading_status(future, now=None, ahead=0, delta=0):
     """
 
     if now is None:
-        now = datetime.datetime.now().time()
+        now = arrow.now().time()
     # 时间列表
     trading_time = futures_tradeing_time[future]
     for b, e, s in trading_time:
