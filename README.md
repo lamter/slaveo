@@ -38,4 +38,21 @@ status = tt.get_trading_status(
 status == tt.continuous_auction
 ```
 
+### 交易日期
+期货由于有夜盘，通常会有个```actionDay```和```tradeDay```的区别。这里面存在繁琐的判定。
+```python
+import tradingtime as tt
+
+# 管理交易日历的逻辑集合，不需要重新实例
+calendar = tt.futureTradeCalendar
+
+# 当前时间段对应的tradeDay 是什么时候。
+# 夜盘时，交易日为次日；周五夜盘时，则在下周一。
+calendar.get_tradeday(arrow.get("2016/12/08 21:01:20"))
+
+# 交易日开始的日期，周一的开始日期，实际上为上周五的夜盘。
+calendar.get_tradeday_opentime(arrow.get("2016/12/12 09:10:20"))
+```
+
+
 
