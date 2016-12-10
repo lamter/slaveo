@@ -351,8 +351,10 @@ date
     def get_tradeday_opentime(self, tradeday):
         """
         获得交易日的起始日，比如长假后第一个交易日的起始日应该为节前的最后一个交易日
+        :param tradeday: date() OR datetime(2016, 12, 12)
         :return:
         """
+
         calendar = self.calendar[self.calendar.next_td == tradeday]
         return calendar.index[0].date()
 

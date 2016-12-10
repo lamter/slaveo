@@ -29,9 +29,9 @@ tt.is_any_trading()
 
 # 获得给定的时间点，对应的期货品种是否正处于交易阶段
 import arrow
-status = tt.get_trading_status(
+tt.get_trading_status(
     "rb",
-    now=arrow("2016/12/08 21:00:20"),
+    now=arrow("2016-12-08 21:00:20").datetime,
 )
 
 # 处于连续竞价阶段
@@ -44,14 +44,14 @@ status == tt.continuous_auction
 import tradingtime as tt
 
 # 管理交易日历的逻辑集合，不需要重新实例
-calendar = tt.futureTradeCalendar
+ftc = tt.futureTradeCalendar
 
 # 当前时间段对应的tradeDay 是什么时候。
 # 夜盘时，交易日为次日；周五夜盘时，则在下周一。
-calendar.get_tradeday(arrow.get("2016/12/08 21:01:20"))
+ftc.get_tradeday(arrow.get("2016-12-08"))
 
 # 交易日开始的日期，周一的开始日期，实际上为上周五的夜盘。
-calendar.get_tradeday_opentime(arrow.get("2016/12/12 09:10:20"))
+ftc.get_tradeday_opentime(now.datetime)
 ```
 
 
