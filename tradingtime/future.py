@@ -9,14 +9,16 @@ import arrow
 import calendar
 import pandas as pd
 
+pwd = os.path.split(__file__)[0]
+
 # 交易日类型
-TRADE_DAY_TYPE_FIRST = 0  # 假期后第一个交易日
-TRADE_DAY_TYPE_NORMAL = 1  # 正常交易日
-TRADE_DAY_TYPE_FRI = 2  # 正常周五
-TRADE_DAY_TYPE_SAT = 3  # 正常周六
-TRADE_DAY_TYPE_HOLIDAY = 4  # 假期
-TRADE_DAY_TYPE_LAST = 5  # 长假前最后一个交易日
-TRADE_DAY_TYPE_HOLIDAY_FIRST = 6  # 长假第一天
+TRADE_DAY_TYPE_FIRST = u"首日"  # 假期后第一个交易日
+TRADE_DAY_TYPE_NORMAL = u"正常"  # 正常交易日
+TRADE_DAY_TYPE_FRI = u"周五"  # 正常周五
+TRADE_DAY_TYPE_SAT = u"周六"  # 正常周六
+TRADE_DAY_TYPE_HOLIDAY = u"假期"  # 假期
+TRADE_DAY_TYPE_LAST = u"末日"  # 长假前最后一个交易日
+TRADE_DAY_TYPE_HOLIDAY_FIRST = u"假期首日"  # 长假第一天
 
 # 假期时间表
 # H = [
@@ -191,19 +193,14 @@ date
         :param end:
         """
 
+        # 每天的假期
+        self.holidays = self.get_holiday_json()  # {2017: {}}
+
         self.begin = begin or self.yearbegin()
         self.end = end or self.yearend()  # 次年1月10日
-        self.holiday = None
-
-        # holidays = []
-        # for k, v in json.load('holiday.json'):
-        #     start, end = v
-        #     holidays.extend(pd.date_range(start, end))
-        # self.holidays = pd.DatetimeIndex(holidays)
-        # holidays = []
-        # for h in HOLIDAYS:
-        #     holidays.extend(pd.date_range(*h))
-        # self.holidays = pd.DataFrame(data=TRADE_DAY_TYPE_HOLIDAY, index=pd.DatetimeIndex(holidays))
+        if self.holidays:
+            endyear = max(self.holidays.keys())
+            self.end = self.end.replace(int(endyear)+1)
 
         # 交易日历
         self.calendar = self.getCalendar()
@@ -218,19 +215,37 @@ date
         now = arrow.now()
         return arrow.get("%s-01-10 00:00:00" % (now.year + 1)).date()
 
+    def get_holiday_json(self):
+        """
+        读取假期时间表
+        :return:
+        """
+        path = os.path.join(pwd, 'holiday')
+        top, dirs, nondirs = next(os.walk(path))
+        # 所有假日文件
+        fn = [n for n in nondirs if n.endswith('.json')]
+
+        holidays = {}
+        # 读取内容
+        for n in fn:
+            year = n.split('.')[0]
+            n = os.path.join(path, n)
+            with open(n, 'r') as f:
+                holidays[year] = json.load(f)
+                # return json.load(f)
+        return holidays
+
     def getCalendar(self):
         """
         生成交易日
         :return:
         """
-
+        # 加载日历的年份
         tradecalendar = pd.DataFrame(data=pd.date_range(self.begin, self.end), columns=['date'])
-        # tradedays["is_tradeday"] = tradedays.date.apply(lambda d: d.weekday() not in [5,6])
 
         types = []
         weekdays = []
         for dt in tradecalendar["date"]:
-            # TODO 再处理节假日
             weekday = dt.date().weekday()
             # 后处理正常交易日
             if weekday == calendar.MONDAY:
@@ -248,6 +263,8 @@ date
             else:
                 # 正常交易日
                 _types = TRADE_DAY_TYPE_NORMAL
+
+            # TODO 再处理节假日
 
             types.append(_types)
             weekdays.append(weekday)
@@ -357,7 +374,6 @@ date
 
         calendar = self.calendar[self.calendar.next_td == tradeday]
         return calendar.index[0].date()
-
 
 
 # 交易日历

@@ -1,11 +1,3 @@
-TRADE_DAY_TYPE_FIRST = u"首日"  # 假期后第一个交易日
-TRADE_DAY_TYPE_NORMAL = u"正常"  # 正常交易日
-TRADE_DAY_TYPE_FRI = u"周五"  # 正常周五
-TRADE_DAY_TYPE_SAT = u"周六"  # 正常周六
-TRADE_DAY_TYPE_HOLIDAY = u"假期"  # 假期
-TRADE_DAY_TYPE_LAST = u"末日"  # 长假前最后一个交易日
-TRADE_DAY_TYPE_HOLIDAY_FIRST = u"假期首日"  # 长假第一天
-
 {
   "2017/01/01": "假期首日"
   ,"2017/01/02": "假期"
