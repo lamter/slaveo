@@ -1,3 +1,4 @@
+# coding: utf-8
 from setuptools import setup, find_packages
 import os
 
@@ -7,26 +8,30 @@ def read(fname):
         return f.read()
 
 
-__version__ = "0.1.16"
+__version__ = "0.1.17"
 
-setup(name='slaveo',
-      version=__version__,
-      keywords='slaveo',
-      description=u'交易相关的库',
-      long_description=read("README.md"),
+setup(
+    name='slaveo',
+    version=__version__,
+    keywords='slaveo',
+    description=u'交易相关的库',
+    long_description=read("README.md"),
 
-      url='https://github.com/lamter/slaveo',
-      author='lamter',
-      author_email='lamter.fu@gmail.com',
+    url='https://github.com/lamter/slaveo',
+    author='lamter',
+    author_email='lamter.fu@gmail.com',
 
-      packages=find_packages(include=("tradingtime/*.json")),
-      install_requires=read("requirements.txt").splitlines(),
-      classifiers=['Development Status :: 4 - Beta',
-                   'Programming Language :: Python :: 2.6',
-                   'Programming Language :: Python :: 2.7',
-                   'Programming Language :: Python :: 3.2',
-                   'Programming Language :: Python :: 3.3',
-                   'Programming Language :: Python :: 3.4',
-                   'Programming Language :: Python :: 3.5',
-                   'License :: OSI Approved :: MIT License'],
-      )
+    packages=find_packages(),
+    package_data={
+        "tradingtime": ["*.json"],
+    },
+    install_requires=read("requirements.txt").splitlines(),
+    classifiers=['Development Status :: 4 - Beta',
+                 'Programming Language :: Python :: 2.6',
+                 'Programming Language :: Python :: 2.7',
+                 'Programming Language :: Python :: 3.2',
+                 'Programming Language :: Python :: 3.3',
+                 'Programming Language :: Python :: 3.4',
+                 'Programming Language :: Python :: 3.5',
+                 'License :: OSI Approved :: MIT License'],
+)

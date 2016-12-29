@@ -221,7 +221,6 @@ date
         :return:
         """
         path = os.path.join(pwd, 'holiday.json')
-        print(path)
         return pd.read_json(path, typ="series").sort_index()
 
     def getCalendar(self):
