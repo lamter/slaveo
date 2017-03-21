@@ -6,6 +6,7 @@
 import arrow
 import pymongo
 import pandas as pd
+import mymath
 
 # 数据库设定
 MONGO_HOST = ("localhost", 27017)
@@ -44,11 +45,12 @@ class Entry(object):
         :param dw: 出入金
         """
         self.balance = balance
-        self.dw = 0
+        self.dw = dw
         self.ctime = ctime or arrow.now().datetime
 
     def to_db(self):
-        return {k:v for k,v in self.__dict__.items() if v is not None}
+        return {k: v for k, v in self.__dict__.items() if v is not None}
+
 
 def get_collection(host=None, port=None, dbn=None, collection=None):
     host = host or MONGO_HOST[0]
@@ -58,7 +60,6 @@ def get_collection(host=None, port=None, dbn=None, collection=None):
 
     # 获取原始数据
     return pymongo.MongoClient(host, port)[dbn][collection]
-
 
 
 def get_nav(host=None, port=None, dbn=None, collection=None):
@@ -97,7 +98,7 @@ def cal_nav(host=None, port=None, dbn=None, collection=None):
     df["nav"] = df["rise"].fillna(1).cumprod()
     # 计算份额
     df["unit"] = df["balance"] / df["nav"]
+    # 跌涨幅
+    df["rise"] = df["rise"].apply(lambda x: x if pd.isnull(x) else mymath.f2p(x - 1))
+
     return df.drop("_id", axis=1)
-
-
-

@@ -122,13 +122,28 @@ class Futures(object):
         # 保留小数
         return nav_se.apply(lambda x: round(x, 3))
 
-    @staticmethod
-    def m_create_table(df):
+    @classmethod
+    def m_create_table(cls, df, _type="markdown"):
         """
         从pandas的DataFrame生成markdown格式表格
         :param df:
         :return:
         """
+        if _type == "markdown":
+            return cls._m_create_table_markdown(df)
+        elif _type == "vnpie":
+            return cls._m_create_table_vnpie(df)
+        else:
+            raise ValueError("unknow table type %s " % _type)
+
+    @classmethod
+    def _m_create_table_markdown(cls, df):
+        """
+        从pandas的DataFrame生成markdown格式表格
+        :param df:
+        :return:
+        """
+
         if len(df) == 0:
             return ''
 
@@ -146,3 +161,49 @@ class Futures(object):
         result = '\n'.join(datas)
         # print result
         return result
+
+    @classmethod
+    def _m_create_table_vnpie(cls, df):
+        """
+        从pandas的DataFrame生成 vnpie 需要的表格格式
+        [table]
+        head|Name|Version
+        unit|Discuz!|X1
+        [/table]
+
+        :param df:
+        :return:
+        """
+
+
+        if len(df) == 0:
+            return ''
+
+        df = df.copy()
+        df.columns = ["净值日", "权益", "净值", "涨幅"]
+        datas = []
+        head = '|'.join(df.columns)
+        # head = "|" + head + "|"
+        datas.append(head)
+
+        # datas.append("|" + ' --: |' * len(df.columns))
+        for ix, row in df.iterrows():
+            data = '|'.join(map(lambda x: str(x), row.get_values()))
+            # data = "|" + data + "|"
+            datas.append(data)
+
+        result = "[table]\n" + '\n'.join(datas) + "\n[/table]"
+        # print result
+        return result
+
+
+        # if len(df) == 0:
+        #     return ''
+        # df = df[0:1]
+        # result = "[table]\n"
+        # for col in df.columns.values:
+        #     result += col + '|' + "|".join(["%s" % i for i in df[col]]) + '\n'
+        #
+        # result += "[\\table]"
+        #
+        # return result
