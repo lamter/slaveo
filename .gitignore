@@ -95,3 +95,4 @@ ENV/
 tmp/
 ipw/
 *.zip
+*.png
