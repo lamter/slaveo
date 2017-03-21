@@ -4,3 +4,4 @@ numpy
 TA-Lib
 arrow
 pymongo
+git+https://github.com/lamter/mydealutils.git#egg=mydealutils
