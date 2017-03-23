@@ -3,7 +3,7 @@
 
 ## 安装
 ```
-pip install git+https://github.com/lamter/slaveo.git#egg=slaveo
+pip install git+git://github.com/lamter/slaveo.git#egg=slaveo
 ```
 
 ## 功能
