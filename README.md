@@ -3,6 +3,7 @@
 
 ## 安装
 ```
+pip install git+git://github.com/lamter/mydealutils.git#egg=mydealutils
 pip install git+git://github.com/lamter/slaveo.git#egg=slaveo
 ```
 
